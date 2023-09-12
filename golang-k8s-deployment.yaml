@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: golang-app-deployment
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: golang-app
+  template:
+    metadata:
+      labels:
+        app: golang-app
+    spec:
+      containers:
+      - name: my-golang-app
+        image: saheedfaniran/go-app-develop:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 1337
+# service type loadbalancer       
+---
+apiVersion: v1        
+kind: Service
+metadata:
+  name: golang-app-svc
+spec:
+  selector:
+    app: golang-app   
+  ports:
+    - protocol: TCP   
+      port: 80        
+      targetPort: 1337
