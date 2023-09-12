@@ -1,59 +1,91 @@
-# DevOps Tech Test - Helloworld
+# Go Application Deployment Pipeline
 
-## Introduction
+This project aims to automate the deployment of a Go application into a Kubernetes cluster using Jenkins, Docker, Terraform, and AWS EKS. This README provides an overview of the project and a step-by-step guide to set up and use the deployment pipeline.
 
-This is a simple helloworld application for DevOps tech test, written in Go version `1.16`  
-The application listens on port `1337` by default.
+## Table of Contents
+- [Prerequisites](#prerequisites)
+- [Setup](#setup)
+- [Jenkins Pipeline](#jenkins-pipeline)
+- [Accessing the Application](#accessing-the-application)
+- [Maintenance and Troubleshooting](#maintenance-and-troubleshooting)
 
-## Endpoints
-Following are the endpoints available.
-```
-/
-/healthz
-/greetings
-```
+## Prerequisites
 
-## Tasks
+Before setting up the deployment pipeline, ensure you have the following prerequisites:
 
-There is no time limit for this exercise, however we would recommend you aim to complete the exercise in 2-3 hours.  
-Once you are happy with your solution, commit and push your work back up to this repository in a branch named `solution`.  
-Please commit your work in a way that each task can be easily identified in the commit history and cherry-picked.  
-The work we want committed should be enough for us to independently repeat your results.  
+- An AWS account with permissions to create EC2 instances, EKS clusters, and manage AWS resources.
+- An EC2 instance (Ubuntu) with SSH access and inbound traffic allowed on ports 8080 and 22.
+- Jenkins installed and running on the EC2 instance.
+- Docker installed on the EC2 instance.
+- Trivy scanner installed for image vulnerability scanning.
+- Terraform installed on the EC2 instance.
+- kubectl installed on the EC2 instance.
+- AWS CLI installed and configured with proper credentials.
+- A GitHub repository containing the Go application code.
+- Proper AWS IAM roles and policies set up for EKS access.
 
-Please do not make any code change to the helloworld application itself, but you are free to install applications on
-Kubernetes that may help you to complete task #3 and #4.
+## Setup
 
-1. Create a single Dockerfile to build and run the application into a deployable container image.  
-   The final image should only contain the application binary.
+Follow these steps to set up the project:
 
-2. Setup and run a single node Kubernetes either locally or on a local VM.  
-   Please document or script the approach you have taken so we can repeat it.
+1. **Launch an EC2 Instance:**
+   - Launch an EC2 instance (t2.medium or small) with Ubuntu.
+   - Allow inbound traffic on ports 8080 and 22 in the security group.
+   - Securely configure SSH access.
 
-3. You have a choice:  
-   3a. Create a [Helm chart](https://helm.sh/) for helloworld  
-   **OR**  
-   3b. Create a [Kustomization](https://kustomize.io/) for helloworld
+2. **Install Jenkins:**
+   - Update packages and install Jenkins.
+   - Install necessary plugins like JDK and SonarQube Scanner.
 
-   Regardless of what you choose, the application should be:
-      * Highly available
-      * Accessible publicly through an ingress
-      * Configured so that kubelet knows:
-        * when a container is ready to start accepting traffic
-        * when a container is in an unhealthy state and needs to be restarted
+3. **Install Docker:**
+   - Install Docker and add your user to the Docker group.
+   - Reload Docker for changes to take effect.
 
-4. Use Terraform, and the [Terraform Helm Provider](https://registry.terraform.io/providers/hashicorp/helm) 
-   or the [Terraform Kubernetes Provider](https://registry.terraform.io/providers/hashicorp/kubernetes/) respectively, 
-   to deploy your Helm chart into your Kubernetes instance.  
-   Ensure you can request the `/greetings` endpoint from outside your Kubernetes instance and receive a response.
+4. **Install Trivy Scanner:**
+   - Install Trivy for image vulnerability scanning.
 
-5. The application endpoint `/greetings` looks for an environment variable named `CANDIDATE_FIRSTNAME` 
-   in order to display the message properly.  
-   Update your chart or deployment to set this environment variable to your first name so the page shows something like
+5. **SSH into the Repository:**
+   - Create an SSH key pair and add the public key to your GitHub account.
+   - Clone the GitHub repository with your Go application code.
 
-   ```
-   Hello xxx, welcome to Hello World!
-   ```
+6. **Install Terraform, kubectl, and AWS CLI:**
+   - Install Terraform, kubectl, and AWS CLI on your EC2 instance.
 
-Please include some guidance on how to repeat your results, if necessary.
+7. **Use Terraform to Create the Kubernetes Clusters:**
+   - Initialize Terraform, plan, and apply to create AWS EKS clusters.
 
-Good luck!
+8. **Update Kubeconfig:**
+   - Use AWS CLI to update the `kubeconfig` file for EKS cluster access.
+
+9. **Create a Deployment.yaml File:**
+   - Create a Kubernetes deployment configuration file (`deployment.yaml`) for your Go application.
+
+## Jenkins Pipeline
+
+The Jenkins pipeline is configured in the `Jenkinsfile` within your project. It consists of several stages, including:
+
+- Git Checkout
+- Build Docker Image
+- Docker Image Scan
+- Push to DockerHub
+- Stop Docker Containers
+- Kubernetes Deployment
+
+You can customize this pipeline script to suit your project's specific requirements and naming conventions.
+
+To execute the pipeline, create a Jenkins pipeline project and configure it to use the pipeline script in your project repository.
+
+## Accessing the Application
+
+After a successful deployment, you can access your Go application through the Load Balancer's external IP provided by AWS EKS.
+
+## Maintenance and Troubleshooting
+
+- Regularly update your infrastructure and dependencies.
+- Secure your Jenkins server and credentials.
+- Monitor and log your Jenkins pipeline for troubleshooting and improvement.
+- Refer to the project's documentation for known issues and troubleshooting tips.
+
+For questions or support, contact [Your Name or Contact Information].
+
+Happy Deploying!
