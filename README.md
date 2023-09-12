@@ -1,4 +1,4 @@
-# Go Application Deployment Pipeline
+# Automated Go Application Deployment to Kubernetes with Jenkins and AWS
 
 This project aims to automate the deployment of a Go application into a Kubernetes cluster using Jenkins, Docker, Terraform, and AWS EKS. This README provides an overview of the project and a step-by-step guide to set up and use the deployment pipeline.
 
