@@ -86,6 +86,6 @@ After a successful deployment, you can access your Go application through the Lo
 - Monitor and log your Jenkins pipeline for troubleshooting and improvement.
 - Refer to the project's documentation for known issues and troubleshooting tips.
 
-For questions or support, contact [Your Name or Contact Information].
+For questions or support, contact me on LinkedIn via [faniransaheed]
 
 Happy Deploying!
