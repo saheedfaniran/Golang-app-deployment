@@ -1,0 +1,89 @@
+pipeline {
+    
+    tools {
+        maven 'Maven3'
+    }
+    agent any
+    environment {
+        //either use Docker hub user id or ECR repository username
+        registry = "saheedfaniran/go-app-develop"
+        //- update your credentials ID after creating credentials for connecting to Docker Hub
+        registryCredential = '43a0c9b8-2e79-41ae-a15d-95c2c3b544d8'
+        dockerImage = ''
+    }
+    
+    stages {
+        stage('Git checkout') {
+            steps {
+               checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'd17c2c61-3229-4bfa-90b5-7f1f4d3f782c', url: 'https://github.com/saheedfaniran/Golang-app-deployment']])
+            }
+        }
+        
+        stage ('Build docker image') {
+            steps {
+                script {
+                    // Log in to DockerHub
+                    withCredentials([
+                    usernamePassword(
+                    credentialsId: '43a0c9b8-2e79-41ae-a15d-95c2c3b544d8',
+                    usernameVariable: 'DOCKER_USERNAME',
+                    passwordVariable: 'DOCKER_PASSWORD'
+                    )]){
+                    sh "echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin"
+                    }
+                    
+                    // Define your Docker image name and tag
+                    def dockerImage = "saheedfaniran/go-app-develop:latest"
+
+                    // Build the Docker image
+                    sh "docker build -t ${dockerImage} ."
+                }
+            }
+        }
+     
+        stage('Docker Image scan') {
+            steps {
+                sh "trivy image saheedfaniran/go-app-develop:latest"
+            }
+        }
+        
+        stage('Push to DockerHub') {
+            steps {
+                script {
+                    // Log in to DockerHub
+                    withCredentials([
+                    usernamePassword(
+                    credentialsId: '43a0c9b8-2e79-41ae-a15d-95c2c3b544d8',
+                    usernameVariable: 'DOCKER_USERNAME',
+                    passwordVariable: 'DOCKER_PASSWORD'
+                    )]){
+                    sh "echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin"
+                    }
+                    
+                    // Push the Docker image to DockerHub
+                    def dockerImage = "saheedfaniran/go-app-develop:latest"
+                    sh "docker push ${dockerImage}"
+                }
+            }
+        }
+        
+        // Running Docker container 
+          // Stopping Docker containers for cleaner Docker run
+        stage('docker stop container') {
+            steps {
+                sh 'docker ps -f name=golangapp -q | xargs --no-run-if-empty docker container stop'
+                sh 'docker container ls -a -fname=golangapp -q | xargs -r docker container rm'
+            }
+         }
+    
+        stage('K8S Deploy') {
+            steps{   
+                script {
+                withKubeConfig([credentialsId: 'K8s', serverUrl: '']) {
+                sh ('kubectl apply -f  golang-k8s-deployment.yaml')
+                }
+                }
+            }
+        }
+    }
+}
